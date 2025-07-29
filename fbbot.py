@@ -169,7 +169,20 @@ def send_message(sender_id, message):
 # Health check endpoint
 @app.route('/')
 def health_check():
-    return "Ardex Bot is running!", 200
+    return "Ardex Bot is running! 🚀", 200
+
+# Status endpoint
+@app.route('/status')
+def status():
+    try:
+        products_count = len(df_products) if 'df_products' in globals() else 0
+        return {
+            "status": "running",
+            "products_loaded": products_count,
+            "model_loaded": 'model' in globals()
+        }, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 # Weryfikacja webhooka
 @app.route('/webhook', methods=['GET'])
@@ -201,6 +214,14 @@ def webhook():
                             send_message(sender_id, "Przepraszam, wystąpił błąd. Spróbuj ponownie.")
     return "OK", 200
 
+if __name__ == "__main__":
+    try:
+        df_products, index = initialize_search()
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port, debug=False)
+    except Exception as e:
+        logger.error(f"Failed to start application: {e}")
+        raise
 if __name__ == "__main__":
     df_products, index = initialize_search()
     port = int(os.environ.get('PORT', 5000))
